@@ -56,6 +56,11 @@ public class ScooterService {
         scooter.setLatitude(newLat);
         scooter.setLongitude(newLon);
         scooter.setMileage(scooter.getMileage() + distanceRidden);
+
+        int batteryDrain = (int) Math.round(distanceRidden * 8);
+        int newBattery = scooter.getBattery() - batteryDrain;
+        scooter.setBattery(Math.max(newBattery, 0));
+
         if (scooter.getBattery() < 15) {
             scooter.setStatus(ScooterStatus.NEEDS_CHARGING);
         } else {

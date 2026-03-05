@@ -43,6 +43,11 @@ public class RideService {
         return rideRepository.save(ride);
     }
 
+    public List<Ride> getUserRideHistory(Long userId) {
+        return rideRepository.findByUserId(userId);
+    }
+
+
     public Ride endRide(Long rideId) {
         Ride ride = rideRepository.findById(rideId).orElseThrow(() -> new RuntimeException("Ride not found!"));
         if (ride.getStatus() == RideStatus.COMPLETED) {
@@ -50,19 +55,22 @@ public class RideService {
         }
         ride.setEndTime(LocalDateTime.now());
         ride.setStatus(RideStatus.COMPLETED);
+
         long minRidden = Duration.between(ride.getStartTime(), ride.getEndTime()).toMinutes();
         if (minRidden == 0) {
             minRidden = 1;
         }
         double totalPrice = UNLOCK_SCOOTER + (minRidden * PRICE_PER_MINUTE);
         ride.setPrice(totalPrice);
-        String requestBody = """
+
+        double distance = minRidden * 0.25;
+        String requestBody = String.format(java.util.Locale.US, """
                 {
                     "latitude": 49.8397,
                     "longitude": 24.0297,
-                    "distanceRidden": 1.5
+                    "distanceRidden": %.2f
                 }
-                """;
+                """, distance);
 
         restClient.post()
                 .uri("/" + ride.getScooterId() + "/return")
@@ -70,10 +78,7 @@ public class RideService {
                 .body(requestBody)
                 .retrieve()
                 .toBodilessEntity();
-        return rideRepository.save(ride);
-    }
 
-    public List<Ride> getUserRideHistory(Long userId) {
-        return rideRepository.findByUserId(userId);
+        return rideRepository.save(ride);
     }
 }
