@@ -6,14 +6,13 @@ import L from 'leaflet';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import toast, { Toaster } from 'react-hot-toast';
-// 🟢 НОВИЙ ІМПОРТ ДЛЯ ЧИТАННЯ ТОКЕНА
 import { jwtDecode } from "jwt-decode";
 
-// Фікс іконок Leaflet
+
 let DefaultIcon = L.icon({ iconUrl: markerIcon, shadowUrl: markerShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Контролер для польоту камери
+
 function MapController({ selectedScooter }) {
     const map = useMap();
     useEffect(() => {
@@ -25,7 +24,6 @@ function MapController({ selectedScooter }) {
 }
 
 function App() {
-    // === СТАНИ ===
     const [scooters, setScooters] = useState([]);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -33,11 +31,7 @@ function App() {
     const [showLogin, setShowLogin] = useState(false);
     const [isLoginMode, setIsLoginMode] = useState(true);
     const [selectedScooter, setSelectedScooter] = useState(null);
-
-    // 🟢 СТАН ДЛЯ ПОШТИ КОРИСТУВАЧА
     const [userEmail, setUserEmail] = useState('');
-
-    // СТАНИ ДЛЯ АКТИВНОЇ ПОЇЗДКИ
     const [activeRide, setActiveRide] = useState(null);
     const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -62,19 +56,16 @@ function App() {
         }
     };
 
-    // 🟢 ЕФЕКТ ПРИ ЗАВАНТАЖЕННІ ТА ЗМІНІ ТОКЕНА
     useEffect(() => {
         fetchScooters();
         checkActiveRide();
-
-        // Розшифровуємо токен, якщо він є в localStorage (при оновленні сторінки)
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                setUserEmail(decoded.sub); // Дістаємо email з токена
+                setUserEmail(decoded.sub);
             } catch (error) {
                 console.error("Недійсний токен", error);
-                handleLogout(); // Якщо токен зіпсований - виходимо
+                handleLogout();
             }
         } else {
             setUserEmail('');
@@ -103,7 +94,6 @@ function App() {
         return `${m}:${s}`;
     };
 
-    // 🟢 ЛОГІКА АВТОРИЗАЦІЇ
     const handleAuth = async (e) => {
         e.preventDefault();
         const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
@@ -113,16 +103,13 @@ function App() {
             const receivedToken = response.data.token;
             setToken(receivedToken);
             localStorage.setItem('token', receivedToken);
-
-            // Одразу розшифровуємо новий токен
             const decoded = jwtDecode(receivedToken);
             setUserEmail(decoded.sub);
-
             setShowLogin(false);
             setIsLoginMode(true);
             setEmail('');
             setPassword('');
-            toast.success(isLoginMode ? "Успішний вхід! 🚀" : "Реєстрація успішна! 🎉", {
+            toast.success(isLoginMode ? "Успішний вхід! " : "Реєстрація успішна! ", {
                 style: { borderRadius: '10px', background: '#333', color: '#fff' }
             });
         } catch (error) {
@@ -135,7 +122,7 @@ function App() {
         setUserEmail('');
         localStorage.removeItem('token');
         setActiveRide(null);
-        toast.success("Ви вийшли з акаунту 👋");
+        toast.success("Ви вийшли з акаунту");
     };
 
     const handleRent = async (scooterId) => {
@@ -146,14 +133,13 @@ function App() {
         }
 
         try {
-            // Поки що залишаємо userId=1, скоро це виправимо на бекенді
             const response = await axios.post(`http://localhost:8080/api/rides/start?userId=1&scooterId=${scooterId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             setActiveRide(response.data);
             setSelectedScooter(null);
-            toast.success('Поїздка розпочата! 🛴💨');
+            toast.success('Поїздка розпочата! ');
             fetchScooters();
         } catch (error) {
             toast.error('Помилка: у вас вже є активна поїздка!');
@@ -183,8 +169,6 @@ function App() {
     return (
         <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
             <Toaster position="top-center" />
-
-            {/* SIDEBAR */}
             <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-lg z-[1001]">
                 <div className="p-6 bg-white border-b border-slate-100">
                     <h1 className="text-2xl font-black tracking-tight text-emerald-600 flex items-center gap-2">
@@ -233,7 +217,6 @@ function App() {
                         </button>
                     ) : (
                         <div className="text-center">
-                            {/* Відображення пошти розшифрованої з JWT */}
                             <p className="text-xs text-slate-500 mb-3 bg-slate-50 py-2 rounded-xl border border-slate-100 truncate px-2">
                                 Кабінет: <strong className="text-emerald-700 block mt-0.5">{userEmail}</strong>
                             </p>
@@ -298,7 +281,7 @@ function App() {
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <p className="text-emerald-100 text-xs font-bold uppercase tracking-widest mb-1">Активна поїздка</p>
-                                <h2 className="text-2xl font-black">Самокат їде 🛴💨</h2>
+                                <h2 className="text-2xl font-black">Самокат їде</h2>
                             </div>
                             <div className="bg-emerald-800/40 rounded-xl px-4 py-2 text-2xl font-black font-mono shadow-inner tracking-wider">
                                 {formatTime(elapsedTime)}
